@@ -83,8 +83,8 @@ int main(int argc, char* argv[]) {
 
 	if (indexOfBreakLine.size() == numberOfString[numberOfString.size() - 1]) {
 		stringToWrite += buffer.substr(indexOfBreakLine[indexOfBreakLine.size() - 1]);
+		stringToWrite += '\n';
 	}
-	stringToWrite += '\n';
 
 	if (position == "begin") {
 		SetFilePointer(h2, 0, NULL, FILE_BEGIN);
@@ -98,7 +98,10 @@ int main(int argc, char* argv[]) {
 
 	WriteFile(h2, stringToWrite.c_str(), stringToWrite.size(), 0, NULL);
 	SetFileAttributesA(argv[indexFirstFile + 1], FILE_ATTRIBUTE_READONLY | FILE_ATTRIBUTE_SYSTEM);
+
+	CloseHandle(h1);
+	CloseHandle(h2);
 	
-	_getch();
+	system("pause");
 	return 0;
 }

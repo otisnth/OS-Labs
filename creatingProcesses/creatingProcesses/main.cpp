@@ -28,11 +28,6 @@ int main(int argc, char* argv[]) {
 		&securityAttributes, OPEN_ALWAYS,
 		0, NULL);
 
-	HANDLE hInput1 = CreateFile(L"input1.txt",
-		GENERIC_READ, FILE_SHARE_READ,
-		&securityAttributes, OPEN_ALWAYS,
-		FILE_ATTRIBUTE_NORMAL, NULL);
-
 	HANDLE hOutput2 = CreateFile(L"output2.txt",
 		GENERIC_WRITE, FILE_SHARE_WRITE,
 		&securityAttributes, OPEN_ALWAYS,
@@ -43,11 +38,6 @@ int main(int argc, char* argv[]) {
 		&securityAttributes, OPEN_ALWAYS,
 		FILE_ATTRIBUTE_NORMAL, NULL);
 
-	HANDLE hOutput3 = CreateFile(L"output3.txt",
-		GENERIC_WRITE, FILE_SHARE_WRITE,
-		&securityAttributes, OPEN_ALWAYS,
-		FILE_ATTRIBUTE_NORMAL, NULL);
-
 	HANDLE hInput3 = CreateFile(L"input3.txt",
 		GENERIC_READ, FILE_SHARE_READ,
 		&securityAttributes, OPEN_ALWAYS,
@@ -55,7 +45,6 @@ int main(int argc, char* argv[]) {
 
 	SetFilePointer(hOutput1, 0, NULL, FILE_END);
 	SetFilePointer(hOutput2, 0, NULL, FILE_END);
-	SetFilePointer(hOutput3, 0, NULL, FILE_END);
 
 	STARTUPINFO startup1 = { sizeof(STARTUPINFO) };
 	startup1.dwFlags = STARTF_USESTDHANDLES;
@@ -95,10 +84,8 @@ int main(int argc, char* argv[]) {
 	WaitForSingleObject(process4.hProcess, INFINITE);
 
 	CloseHandle(hOutput1);
-	CloseHandle(hInput1);
 	CloseHandle(hOutput2);
 	CloseHandle(hInput2);
-	CloseHandle(hOutput3);
 	CloseHandle(hInput3);
 	CloseHandle(process1.hThread);
 	CloseHandle(process2.hThread);

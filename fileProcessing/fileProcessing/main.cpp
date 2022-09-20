@@ -3,9 +3,6 @@
 #include <conio.h>
 #include <windows.h>
 #include <iostream>
-#include <string>
-#include <vector>
-#include <algorithm>
 
 wchar_t* convertCharArrayToLPCWSTR(const char* charArray)
 {
@@ -19,12 +16,8 @@ int main(int argc, char* argv[]) {
 	setlocale(LC_ALL, "rus");
 	system("cls");
 
-	std::string buffer;
-	std::vector<int> numberOfString;
-	LPVOID buf[1];
+	char buffer;
 	DWORD lpNumberOfBytesRead;
-	std::string stringToWrite;
-	std::vector<int> indexOfBreakLine;
 
 	if (argc == 1) {
 		std::cout << "Нет аргументов!" << std::endl;
@@ -38,70 +31,72 @@ int main(int argc, char* argv[]) {
 	}
 	
 	int indexFirstFile = 2 + stringCount;
-	std::string position = argv[indexFirstFile + 2];
+	int position = atoi(argv[indexFirstFile + 2]);
 
 	std::cout << "First file: " << argv[indexFirstFile] << std::endl;
 	std::cout << "Second file: " << argv[indexFirstFile + 1] << std::endl;
 	std::cout << "Position: " << position << std::endl;
 
-	for (int i = 0; i < stringCount; ++i) {
-		numberOfString.push_back(atoi(argv[i + 2]));
-	}
+	HANDLE h1 = CreateFile(convertCharArrayToLPCWSTR(argv[indexFirstFile]), GENERIC_READ, 0, NULL,
+		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	std::sort(numberOfString.begin(), numberOfString.end());
-	for (int i = 0; i < stringCount; ++i) {
-		std::cout << "Number of string: " << numberOfString[i] << std::endl;
-	}
+	HANDLE h2 = CreateFile(convertCharArrayToLPCWSTR(argv[indexFirstFile + 1]), GENERIC_READ | GENERIC_WRITE,
+		0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	HANDLE h1, h2;
-	h1 = CreateFileW(convertCharArrayToLPCWSTR(argv[indexFirstFile]), GENERIC_READ,
-		FILE_SHARE_READ, NULL,
-		OPEN_EXISTING, 0, NULL);
-	h2 = CreateFileW(convertCharArrayToLPCWSTR(argv[indexFirstFile + 1]), GENERIC_WRITE,
-		FILE_SHARE_WRITE, NULL,
-		OPEN_ALWAYS, 0, NULL);
+	HANDLE hTemp = CreateFile(L"temp.txt", GENERIC_READ | GENERIC_WRITE,
+		0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	
-	do {
-		ReadFile(h1, buf, 1, &lpNumberOfBytesRead, NULL);
-		if (lpNumberOfBytesRead == 0) break;
-		buffer += char(buf[0]);
-
-	} while (lpNumberOfBytesRead != 0);
+	int stringCounter = 0;
 	
-	indexOfBreakLine.push_back(0);
-	for (int i = 0; i < buffer.size(); ++i) {
-		if (buffer[i] == '\n') indexOfBreakLine.push_back(i);
+	while (stringCounter != atoi(argv[argc - 1]) - 1) {
+		if (ReadFile(h2, &buffer, sizeof(buffer), &lpNumberOfBytesRead, NULL) && lpNumberOfBytesRead == 0) {
+			break;
+		}
+		if (buffer == '\n') {
+			stringCounter++;
+		}
 	}
+	LARGE_INTEGER filePos;
+	SetFilePointerEx(h2, { { 0,0 } }, &filePos, FILE_CURRENT);
 
-	for (auto i : numberOfString) {
-		for (int j = 1; j < indexOfBreakLine.size(); j++) {
-			if (j == i) {
-				stringToWrite += buffer.substr(indexOfBreakLine[j-1], indexOfBreakLine[j] - indexOfBreakLine[j - 1]);
+	while (ReadFile(h2, &buffer, sizeof(buffer), &lpNumberOfBytesRead, NULL) && lpNumberOfBytesRead != 0) {
+			WriteFile(hTemp, &buffer, sizeof(buffer), &lpNumberOfBytesRead, NULL);
+	}
+	SetFilePointerEx(h2, filePos, NULL, FILE_BEGIN);
+	SetFilePointerEx(hTemp, { { 0,0 } }, NULL, FILE_BEGIN);
+
+	stringCounter = 0;
+	int i = 0;
+	while (i != stringCount) {
+		if (ReadFile(h1, &buffer, sizeof(buffer), &lpNumberOfBytesRead, NULL) && lpNumberOfBytesRead == 0) {
+			break;
+		}
+		if (stringCounter == atoi(argv[2 + i]) - 1) {
+			WriteFile(h2, &buffer, sizeof(buffer), &lpNumberOfBytesRead, NULL);
+			if (buffer == '\n') {
+				stringCounter++;
+				i++;
+			}
+		}
+		else {
+			if (buffer == '\n') {
+				stringCounter++;
 			}
 		}
 	}
 
-	if (indexOfBreakLine.size() == numberOfString[numberOfString.size() - 1]) {
-		stringToWrite += buffer.substr(indexOfBreakLine[indexOfBreakLine.size() - 1]);
-		stringToWrite += '\n';
+	while (ReadFile(hTemp, &buffer, sizeof(buffer), &lpNumberOfBytesRead, NULL) &&
+		lpNumberOfBytesRead != 0) {
+		WriteFile(h2, &buffer, sizeof(buffer), &lpNumberOfBytesRead, NULL);
 	}
 
-	if (position == "begin") {
-		SetFilePointer(h2, 0, NULL, FILE_BEGIN);
-	}
-	if (position == "end") {
-		SetFilePointer(h2, 0, NULL, FILE_END);
-	}
-	if (position == "current") {
-		SetFilePointer(h2, 0, NULL, FILE_CURRENT);
-	}
-
-	WriteFile(h2, stringToWrite.c_str(), stringToWrite.size(), 0, NULL);
 	SetFileAttributesA(argv[indexFirstFile + 1], FILE_ATTRIBUTE_READONLY | FILE_ATTRIBUTE_SYSTEM);
 
 	CloseHandle(h1);
 	CloseHandle(h2);
-	
+	CloseHandle(hTemp);
+	DeleteFile(L"temp.txt");
+
 	system("pause");
 	return 0;
 }

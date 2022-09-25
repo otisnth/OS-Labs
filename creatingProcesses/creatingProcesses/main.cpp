@@ -70,17 +70,21 @@ int main(int argc, char* argv[]) {
 	startup4.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
 	PROCESS_INFORMATION process4;
 
-	CreateProcess(childProcess, NULL, &securityAttributes, NULL, TRUE, 0, 0, 0, &startup1, &process1);
-	WaitForSingleObject(process1.hProcess, INFINITE);
-	CreateProcess(childProcess, NULL, &securityAttributes, NULL, TRUE, 0, 0, 0, &startup2, &process2);
+	if (CreateProcess(childProcess, NULL, &securityAttributes, NULL, TRUE, 0, 0, 0, &startup1, &process1))
+		cout << "Процесс 1 запущен" << endl;
+	
+	if (CreateProcess(childProcess, NULL, &securityAttributes, NULL, TRUE, 0, 0, 0, &startup2, &process2))
+		cout << "Процесс 2 запущен" << endl;;
 
 	waitList[0] = process1.hProcess;
 	waitList[1] = process2.hProcess;
 	WaitForMultipleObjects(2, waitList, FALSE, INFINITE);
 
-	CreateProcess(childProcess, NULL, &securityAttributes, NULL, TRUE, 0, 0, 0, &startup3, &process3);
-	WaitForSingleObject(process3.hProcess, INFINITE);
-	CreateProcess(childProcess, NULL, &securityAttributes, NULL, TRUE, 0, 0, 0, &startup4, &process4);
+	if (CreateProcess(childProcess, NULL, &securityAttributes, NULL, TRUE, 0, 0, 0, &startup3, &process3))
+		cout << "Процесс 3 запущен" << endl;;
+	
+	if (CreateProcess(childProcess, NULL, &securityAttributes, NULL, TRUE, 0, 0, 0, &startup4, &process4))
+		cout << "Процесс 4 запущен" << endl;;
 	WaitForSingleObject(process4.hProcess, INFINITE);
 
 	CloseHandle(hOutput1);

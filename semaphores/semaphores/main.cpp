@@ -17,7 +17,7 @@ HANDLE hFilled, hEmpty, hDataAccess;
 DWORD WINAPI creatorThread(LPVOID data) {
 	srand(time(NULL));
 	RingBuffer* buffer = (RingBuffer*)data;
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 5; i++) {
 		WaitForSingleObject(hEmpty, INFINITE);
 		WaitForSingleObject(hDataAccess, INFINITE);
 		for (int j = 0; j <= DATA_SIZE_SERVER; j++) {
@@ -40,15 +40,9 @@ DWORD WINAPI creatorThread(LPVOID data) {
 
 DWORD WINAPI consumerThread(LPVOID data) {
 	RingBuffer* buffer = (RingBuffer*)data;
-	for (int i = 0; i < 17; i++) {
+	for (int i = 0; i < 5; i++) {
 		WaitForSingleObject(hFilled, INFINITE);
 		WaitForSingleObject(hDataAccess, INFINITE);
-		if (buffer->indexFirstEmpty - buffer->indexFirstFilled < DATA_SIZE_CLIENT) {
-			ReleaseSemaphore(hDataAccess, 1, NULL);
-			ReleaseSemaphore(hFilled, 1, NULL);
-			i--;
-			continue;
-		}
 		for (int j = 0; j <= DATA_SIZE_CLIENT; j++) {
 			cout << "Client thread(consumer)" << "[ " << j << " ]:" << '\t';
 			cout << " [" << buffer->indexFirstFilled << "]=" << buffer -> data[buffer->indexFirstFilled] << endl;
